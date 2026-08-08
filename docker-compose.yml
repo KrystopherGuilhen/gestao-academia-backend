@@ -1,0 +1,70 @@
+# Sobe o banco de dados e o backend. Pensado para funcionar em conjunto com
+# o frontend (repositorio "gestao-academia-frontend"), que roda separadamente.
+#
+# Os dois se conectam atraves de uma rede Docker externa compartilhada, que
+# precisa existir ANTES de subir qualquer um dos dois:
+#
+#   docker network create gestao-academia-network
+#
+# (se a rede ja existir, o comando acima so vai avisar que ja existe — sem problema)
+#
+# Depois:
+#   cp .env.example .env
+#   docker compose up --build
+#
+# O servico abaixo se chama "backend" de proposito: e o nome que o Nginx do
+# frontend usa, por padrao, para encontrar esta API dentro da rede
+# compartilhada (proxy reverso /api/* -> http://backend:8080/api/*).
+
+services:
+
+  db:
+    image: mysql:8.0
+    container_name: gestao-academia-db
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - gestao-academia-network
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -u root -p$$MYSQL_ROOT_PASSWORD"]
+      interval: 5s
+      timeout: 10s
+      retries: 20
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gestao-academia-backend
+    restart: always
+    ports:
+      - "${BACKEND_PORT}:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}
+      CORS_ALLOWED_METHODS: ${CORS_ALLOWED_METHODS}
+      CORS_ALLOWED_HEADERS: ${CORS_ALLOWED_HEADERS}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - gestao-academia-network
+
+networks:
+  gestao-academia-network:
+    external: true
+
+volumes:
+  mysql_data:

@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestão Acadêmica — Documentação da API</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css">
+    <style>
+        :root {
+            --topbar-bg: #1a1f2b;
+        }
+
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        /* Barra superior customizada com o titulo e o botao de tema */
+        .app-topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--topbar-bg);
+            color: #fff;
+            padding: 0.75rem 1.5rem;
+        }
+
+        .app-topbar h1 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        #theme-toggle-btn {
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            color: #fff;
+            border-radius: 6px;
+            padding: 0.4rem 0.9rem;
+            cursor: pointer;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        #theme-toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.22);
+        }
+
+        /*
+         * Modo escuro: o Swagger UI nao tem tema escuro nativo nesta versao,
+         * entao aplicamos um filtro de inversao de cores sobre todo o widget
+         * (tecnica comum e leve para "escurecer" bibliotecas de terceiros sem
+         * reescrever cada seletor CSS manualmente) e reinvertemos os blocos de
+         * codigo/exemplos para que a sintaxe colorida continue legivel.
+         */
+        body.dark-mode {
+            background-color: #1a1a1a;
+        }
+
+        body.dark-mode #swagger-ui {
+            filter: invert(90%) hue-rotate(180deg);
+        }
+
+        body.dark-mode #swagger-ui .microlight,
+        body.dark-mode #swagger-ui img,
+        body.dark-mode #swagger-ui .highlight-code {
+            filter: invert(100%) hue-rotate(180deg);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-topbar">
+        <h1>📚 Gestão Acadêmica — API Docs</h1>
+        <button id="theme-toggle-btn" type="button">🌙 Tema escuro</button>
+    </div>
+
+    <div id="swagger-ui"></div>
+
+    <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+    <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-standalone-preset.js"></script>
+    <script>
+        window.onload = function () {
+            window.ui = SwaggerUIBundle({
+                url: '/v3/api-docs',
+                dom_id: '#swagger-ui',
+                presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset],
+                layout: 'StandaloneLayout',
+                docExpansion: 'list',
+                deepLinking: true,
+                persistAuthorization: true
+            });
+
+            var STORAGE_KEY = 'swagger-theme';
+            var btn = document.getElementById('theme-toggle-btn');
+
+            function aplicarTema(escuro) {
+                document.body.classList.toggle('dark-mode', escuro);
+                btn.textContent = escuro ? '☀️ Tema claro' : '🌙 Tema escuro';
+            }
+
+            var salvo = localStorage.getItem(STORAGE_KEY);
+            aplicarTema(salvo === 'dark');
+
+            btn.addEventListener('click', function () {
+                var escuroAtivo = document.body.classList.contains('dark-mode');
+                var novoEstado = !escuroAtivo;
+                localStorage.setItem(STORAGE_KEY, novoEstado ? 'dark' : 'light');
+                aplicarTema(novoEstado);
+            });
+        };
+    </script>
+</body>
+</html>
