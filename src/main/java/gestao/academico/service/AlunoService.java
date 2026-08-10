@@ -6,6 +6,7 @@ import gestao.academico.exception.ResourceNotFoundException;
 import gestao.academico.model.dto.AlunoDTO;
 import gestao.academico.model.entidades.Aluno;
 import gestao.academico.repository.AlunoRepository;
+import gestao.academico.repository.MatriculaRepository;
 import gestao.academico.util.PaginaResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -20,6 +21,7 @@ import java.util.List;
 public class AlunoService {
 
     private final AlunoRepository alunoRepository;
+    private final MatriculaRepository matriculaRepository;
 
     @Transactional(readOnly = true)
     public PaginaResponse<AlunoDTO> consultaPaginada(Pageable pageable, String filtro) {
@@ -69,10 +71,15 @@ public class AlunoService {
     @Transactional
     public void excluir(Long id) {
         buscarEntidade(id);
+
+        if (matriculaRepository.existsByAlunoId(id)) {
+            throw new RegraNegocioException("Este aluno não pode ser excluído pois está relacionado a uma turma");
+        }
+
         try {
             alunoRepository.deleteById(id);
         } catch (DataIntegrityViolationException ex) {
-            throw new RegraNegocioException("Nao e possivel excluir o aluno pois existem matriculas vinculadas a ele");
+            throw new RegraNegocioException("Este aluno não pode ser excluído pois está relacionado a uma turma");
         }
     }
 

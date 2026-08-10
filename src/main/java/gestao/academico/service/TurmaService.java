@@ -7,6 +7,7 @@ import gestao.academico.model.dto.TurmaDTO;
 import gestao.academico.model.entidades.Disciplina;
 import gestao.academico.model.entidades.StatusTurma;
 import gestao.academico.model.entidades.Turma;
+import gestao.academico.repository.MatriculaRepository;
 import gestao.academico.repository.TurmaRepository;
 import gestao.academico.util.PaginaResponse;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,7 @@ public class TurmaService {
 
     private final TurmaRepository turmaRepository;
     private final DisciplinaService disciplinaService;
+    private final MatriculaRepository matriculaRepository;
 
     @Transactional(readOnly = true)
     public PaginaResponse<TurmaDTO> consultaPaginada(Pageable pageable, String filtro) {
@@ -102,10 +104,15 @@ public class TurmaService {
     @Transactional
     public void excluir(Long id) {
         buscarEntidade(id);
+
+        if (matriculaRepository.existsByTurmaId(id)) {
+            throw new RegraNegocioException("Esta turma não pode ser excluída pois possui alunos matriculados nela");
+        }
+
         try {
             turmaRepository.deleteById(id);
         } catch (DataIntegrityViolationException ex) {
-            throw new RegraNegocioException("Nao e possivel excluir a turma pois existem matriculas vinculadas a ela");
+            throw new RegraNegocioException("Esta turma não pode ser excluída pois possui alunos matriculados nela");
         }
     }
 

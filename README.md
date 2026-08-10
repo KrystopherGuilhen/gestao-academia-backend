@@ -283,6 +283,9 @@ Este é o ponto mais crítico do domínio:
 - Confirmar consome vaga; cancelar uma matrícula `CONFIRMADA` libera a vaga.
 - Consulta de matrículas por aluno (`GET /api/matriculas/aluno/{id}`) e por turma
   (`GET /api/matriculas/turma/{id}`), além de uma listagem geral paginada e buscável.
+- Um aluno não pode ser excluído se possuir **qualquer** matrícula (mesmo `CANCELADA`) — nesse caso,
+  apenas a edição do cadastro é permitida. O mesmo vale para turmas: só podem ser excluídas se não
+  tiverem nenhum aluno matriculado, em nenhum status.
 
 ### Migrations com Flyway
 

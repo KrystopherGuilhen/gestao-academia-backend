@@ -15,6 +15,12 @@ public interface MatriculaRepository extends JpaRepository<Matricula, Long> {
 
     boolean existsByAlunoIdAndTurmaId(Long alunoId, Long turmaId);
 
+    /** Usado para bloquear a exclusao de um aluno que ja possui qualquer matricula (mesmo cancelada). */
+    boolean existsByAlunoId(Long alunoId);
+
+    /** Usado para bloquear a exclusao de uma turma que ja possui qualquer matricula (mesmo cancelada). */
+    boolean existsByTurmaId(Long turmaId);
+
     Optional<Matricula> findByAlunoIdAndTurmaId(Long alunoId, Long turmaId);
 
     List<Matricula> findByAlunoId(Long alunoId);
