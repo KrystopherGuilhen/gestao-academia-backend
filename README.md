@@ -21,6 +21,7 @@ turmas, e controle do fluxo de matrícula (vagas, confirmação e cancelamento).
 - [Variáveis de ambiente](#variáveis-de-ambiente)
 - [Testes automatizados](#testes-automatizados)
 - [Documentação da API (Swagger)](#documentação-da-api-swagger)
+- [Build e publicação da imagem Docker](#build-e-publicação-da-imagem-docker)
 - [Decisões técnicas](#decisões-técnicas)
 - [Limitações conhecidas](#limitações-conhecidas)
 - [Uso de IA](#uso-de-ia)
@@ -247,6 +248,63 @@ Com o backend rodando, duas opções:
 
 Todos os endpoints exigem um token JWT (obtido em `POST /api/auth/login`), exceto o próprio login,
 os caminhos de documentação e `/actuator/health`. Use o botão **Authorize** e informe `Bearer <token>`.
+
+---
+
+## Build e publicação da imagem Docker
+
+Esta seção é para quem vai **gerar e publicar** a imagem (manter o projeto), não para quem só quer
+rodar — se você só quer rodar, veja [Como executar](#como-executar).
+
+O `Dockerfile` deste projeto já faz o build do `.jar` sozinho dentro do container (é um build
+multi-stage: uma etapa com Maven completo compila o projeto, a etapa final só leva o `.jar` gerado e
+o JRE). Ou seja, **não é obrigatório** gerar o `.jar` na mão antes — mas se você já gerou (`clean` +
+`package` pelo IntelliJ, por exemplo), não tem problema nenhum, o Docker ignora o `target/` local e
+builda do zero mesmo assim.
+
+### 1. Gerar a imagem localmente
+
+```bash
+cd gestao-academia-backend
+docker build -t gestao-academia-backend:latest .
+```
+
+### 2. Login no Docker Hub
+
+```bash
+docker login
+```
+
+### 3. Taguear a imagem (troque `SEU_USUARIO_DOCKERHUB` pelo seu usuário no Docker Hub)
+
+```bash
+docker tag gestao-academia-backend:latest SEU_USUARIO_DOCKERHUB/gestao-academia-backend:latest
+```
+
+### 4. Enviar para o Docker Hub
+
+```bash
+docker push SEU_USUARIO_DOCKERHUB/gestao-academia-backend:latest
+```
+
+### Como quem for usar consegue rodar sem buildar nada
+
+O `docker-compose.yml` deste repositório já referencia `SEU_USUARIO_DOCKERHUB/gestao-academia-backend:latest`
+no campo `image` do serviço `backend` (ajuste esse nome de usuário no arquivo depois de publicar a
+sua imagem). Assim, quem for usar o projeto tem as duas opções, com o **mesmo** `docker-compose.yml`:
+
+```bash
+# Opção A — baixar a imagem pronta do Docker Hub (não builda nada localmente)
+docker compose pull
+docker compose up
+
+# Opção B — buildar localmente a partir do código-fonte (ignora a imagem do Hub)
+docker compose up --build
+```
+
+> Repita os mesmos 4 passos acima no repositório do frontend (`gestao-academia-frontend`) para gerar
+> e publicar a imagem dele também — o `Dockerfile` de lá funciona da mesma forma (build multi-stage,
+> não precisa rodar `npm install`/`npm run build` manualmente antes).
 
 ---
 
